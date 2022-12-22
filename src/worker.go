@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -32,37 +31,37 @@ func RunWorker(config Config) {
 			log.Fatal(err)
 		}
 	}()
-
+	channel := make(chan pulsar.ConsumerMessage, 100)
 	// Create a consumer
-	consumer, err := client.Subscribe(pulsar.ConsumerOptions{
-		Topic:            config.channelName,
-		SubscriptionName: "worker",
-		Type:             pulsar.Shared,
-	})
+	jsonSchemaWithProperties := pulsar.NewJSONSchema(exampleSchemaDef, nil)
+	options := pulsar.ConsumerOptions{
+		Topic:                       config.channelName,
+		SubscriptionName:            "worker",
+		Type:                        pulsar.Shared,
+		Schema:                      jsonSchemaWithProperties,
+		SubscriptionInitialPosition: pulsar.SubscriptionPositionEarliest,
+	}
+	consumer, err := client.Subscribe(options)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	defer consumer.Close()
 
-	ctx := context.Background()
-
-	// Write your business logic here
-	// In this case, you build a simple Web server. You can consume messages by requesting http://localhost:8083/consume
-	webPort := 8083
-	http.HandleFunc("/consume", func(w http.ResponseWriter, r *http.Request) {
-		msg, err := consumer.Receive(ctx)
-		if err != nil {
-			log.Fatal(err)
-		} else {
-			log.Printf("Received message msgId: %v -- content: '%s'\n", msg.ID(), string(msg.Payload()))
-			fmt.Fprintf(w, "Received message msgId: %v -- content: '%s'\n", msg.ID(), string(msg.Payload()))
-			consumer.Ack(msg)
+	options.MessageChannel = channel
+	// Receive messages from channel. The channel returns a struct which contains message and the consumer from where
+	// the message was received. It's not necessary here since we have 1 single consumer, but the channel could be
+	// shared across multiple consumers as well
+	for cm := range channel {
+		msg := cm.Message
+		var s Payload
+		err2 := msg.GetSchemaValue(&s)
+		if err2 != nil {
+			log.Fatal("error")
 		}
-	})
+		fmt.Printf("Received message  msgId: %v -- content: '%s'\n",
+			msg.ID(), string(msg.Payload()))
 
-	err = http.ListenAndServe(":"+strconv.Itoa(webPort), nil)
-	if err != nil {
-		log.Fatal(err)
+		consumer.Ack(msg)
 	}
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -10,6 +11,11 @@ import (
 	"github.com/apache/pulsar-client-go/pulsar"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+
+type Payload struct {
+	Payload   string   `json:"payload"`
+	Addresses []string `json:"addresses"`
+}
 
 func RunGateway(config Config) {
 	// Create a Pulsar client
@@ -52,11 +58,15 @@ func RunGateway(config Config) {
 	// Write your business logic here
 	// In this case, you build a simple Web server. You can produce messages by requesting http://localhost:8082/produce
 	http.HandleFunc("/send", func(w http.ResponseWriter, r *http.Request) {
+		var payload Payload
+		err := json.NewDecoder(r.Body).Decode(&payload)
+		// TODO: split for faster distribution
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
 		msgId, err := producer.Send(ctx, &pulsar.ProducerMessage{
-			Value: &Payload{
-				payload:   "",
-				addresses: []string{"dev"},
-			},
+			Value: &payload,
 		})
 		if err != nil {
 			log.Fatal(err)

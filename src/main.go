@@ -22,11 +22,6 @@ type Config struct {
 	channelName string `env:"CHANNEL_NAME" envDefault:"webhooks"`
 }
 
-type Payload struct {
-	payload   string   `json:"payload"`
-	addresses []string `json:"addresses"`
-}
-
 func main() {
 	cfg := Config{}
 	if err := env.Parse(&cfg); err != nil {
