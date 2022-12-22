@@ -16,10 +16,10 @@ type testJSON struct {
 	Name string `json:"name"`
 }
 
-func RunWorker() {
+func RunWorker(config Config) {
 
 	client, err := pulsar.NewClient(pulsar.ClientOptions{
-		URL: "pulsar://localhost:6650",
+		URL: config.url,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -30,7 +30,6 @@ func RunWorker() {
 	// Start a separate goroutine for Prometheus metrics
 	// In this case, Prometheus metrics can be accessed via http://localhost:2112/metrics
 	go func() {
-		prometheusPort := 2112
 		log.Printf("Starting Prometheus metrics at http://localhost:%v/metrics\n", prometheusPort)
 		http.Handle("/metrics", promhttp.Handler())
 		err = http.ListenAndServe(":"+strconv.Itoa(prometheusPort), nil)
@@ -41,8 +40,8 @@ func RunWorker() {
 
 	// Create a consumer
 	consumer, err := client.Subscribe(pulsar.ConsumerOptions{
-		Topic:            "topic-1",
-		SubscriptionName: "sub-1",
+		Topic:            config.channelName,
+		SubscriptionName: "worker",
 		Type:             pulsar.Shared,
 	})
 	if err != nil {
