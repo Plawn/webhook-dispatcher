@@ -20,7 +20,7 @@ type Payload struct {
 func RunGateway(config Config) {
 	// Create a Pulsar client
 	client, err := pulsar.NewClient(pulsar.ClientOptions{
-		URL: config.url,
+		URL: config.Url,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -44,7 +44,7 @@ func RunGateway(config Config) {
 	properties["pulsar"] = "hello"
 	jsonSchemaWithProperties := pulsar.NewJSONSchema(exampleSchemaDef, properties)
 	producer, err := client.CreateProducer(pulsar.ProducerOptions{
-		Topic:  "topic-1",
+		Topic:  config.ChannelName,
 		Schema: jsonSchemaWithProperties,
 	})
 	if err != nil {

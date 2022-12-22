@@ -1,19 +1,21 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/apache/pulsar-client-go/pulsar"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func RunWorker(config Config) {
-
+	fmt.Printf("starting with %s\n", config.Url)
 	client, err := pulsar.NewClient(pulsar.ClientOptions{
-		URL: config.url,
+		URL: config.Url,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -35,12 +37,13 @@ func RunWorker(config Config) {
 	// Create a consumer
 	jsonSchemaWithProperties := pulsar.NewJSONSchema(exampleSchemaDef, nil)
 	options := pulsar.ConsumerOptions{
-		Topic:                       config.channelName,
+		Topic:                       config.ChannelName,
 		SubscriptionName:            "worker",
 		Type:                        pulsar.Shared,
 		Schema:                      jsonSchemaWithProperties,
 		SubscriptionInitialPosition: pulsar.SubscriptionPositionEarliest,
 	}
+	options.MessageChannel = channel
 	consumer, err := client.Subscribe(options)
 	if err != nil {
 		log.Fatal(err)
@@ -48,7 +51,6 @@ func RunWorker(config Config) {
 
 	defer consumer.Close()
 
-	options.MessageChannel = channel
 	// Receive messages from channel. The channel returns a struct which contains message and the consumer from where
 	// the message was received. It's not necessary here since we have 1 single consumer, but the channel could be
 	// shared across multiple consumers as well
@@ -61,7 +63,14 @@ func RunWorker(config Config) {
 		}
 		fmt.Printf("Received message  msgId: %v -- content: '%s'\n",
 			msg.ID(), string(msg.Payload()))
-
+		for _, a := range s.Addresses {
+			request, _ := http.NewRequest("POST", a, bytes.NewBuffer([]byte(s.Payload)))
+			request.Header.Set("Content-Type", "application/json; charset=UTF-8")
+			client := &http.Client{
+				Timeout: 1 * time.Second,
+			}
+			client.Do(request)
+		}
 		consumer.Ack(msg)
 	}
 }

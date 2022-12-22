@@ -6,28 +6,28 @@ import (
 	"github.com/caarlos0/env/v6"
 )
 
-const (
-	httpPort       = 8000
-	prometheusPort = 9000
-)
-
 var (
-	exampleSchemaDef = "{\"type\":\"record\",\"name\":\"Example\",\"namespace\":\"test\"," +
-		"\"fields\":[{\"name\":\"payload\",\"type\":\"string\"},{\"name\":\"addresses\",\"type\":\"array\",\"items\":{\"type\": \"string\"}  }]}"
+	exampleSchemaDef = "[{\"name\":\"payload\",\"type\":\"string\"},{\"name\":\"addresses\",\"type\":\"array\",\"items\":{\"type\": \"string\"}  }]"
+	httpPort         = 8000
+	prometheusPort   = 9500
 )
 
 type Config struct {
-	isWorker    bool   `env:"IS_WORKER" envDefault:"true"`
-	url         string `env:"PULSAR_URL"`
-	channelName string `env:"CHANNEL_NAME" envDefault:"webhooks"`
+	IsWorker       bool   `env:"IS_WORKER" envDefault:"true"`
+	Url            string `env:"PULSAR_URL"`
+	ChannelName    string `env:"CHANNEL_NAME" envDefault:"webhooks"`
+	PrometheusPort int    `env:"PROMETHEUS_PORT" envDefault:"9500"`
+	HttpPort       int    `env:"HTTP_PORT" envDefault:"8000"`
 }
 
 func main() {
 	cfg := Config{}
 	if err := env.Parse(&cfg); err != nil {
-		fmt.Printf("%+v\n", err)
+		fmt.Printf("Missing context, %+v\n", err)
 	}
-	if cfg.isWorker {
+	httpPort = cfg.HttpPort
+	prometheusPort = cfg.PrometheusPort
+	if cfg.IsWorker {
 		RunWorker(cfg)
 	} else {
 		RunGateway(cfg)

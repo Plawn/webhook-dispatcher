@@ -1,0 +1,1 @@
+PULSAR_URL=pulsar://localhost:6650 IS_WORKER=false PROMETHEUS_PORT=9501 ./src/src
