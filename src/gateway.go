@@ -34,8 +34,12 @@ func RunGateway(config Config) {
 	}()
 
 	// Create a producer
+	properties := make(map[string]string)
+	properties["pulsar"] = "hello"
+	jsonSchemaWithProperties := pulsar.NewJSONSchema(exampleSchemaDef, properties)
 	producer, err := client.CreateProducer(pulsar.ProducerOptions{
-		Topic: "topic-1",
+		Topic:  "topic-1",
+		Schema: jsonSchemaWithProperties,
 	})
 	if err != nil {
 		log.Fatal(err)
