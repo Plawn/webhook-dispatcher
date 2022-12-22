@@ -53,7 +53,10 @@ func RunGateway(config Config) {
 	// In this case, you build a simple Web server. You can produce messages by requesting http://localhost:8082/produce
 	http.HandleFunc("/send", func(w http.ResponseWriter, r *http.Request) {
 		msgId, err := producer.Send(ctx, &pulsar.ProducerMessage{
-			Payload: []byte(fmt.Sprintf("hello world")),
+			Value: &Payload{
+				payload:   "",
+				addresses: []string{"dev"},
+			},
 		})
 		if err != nil {
 			log.Fatal(err)
