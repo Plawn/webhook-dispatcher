@@ -11,10 +11,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-func startPrometheus() {
-
-}
-
 func RunGateway(config Config) {
 	// Create a Pulsar client
 	client, err := pulsar.NewClient(pulsar.ClientOptions{

@@ -11,11 +11,6 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-type testJSON struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
 func RunWorker(config Config) {
 
 	client, err := pulsar.NewClient(pulsar.ClientOptions{
