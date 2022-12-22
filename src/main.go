@@ -13,7 +13,7 @@ const (
 
 var (
 	exampleSchemaDef = "{\"type\":\"record\",\"name\":\"Example\",\"namespace\":\"test\"," +
-		"\"fields\":[{\"name\":\"payload\",\"type\":\"string\"},{\"name\":\"Name\",\"type\":\"array\",\"items\":{\"type\": \"string\"}  }]}"
+		"\"fields\":[{\"name\":\"payload\",\"type\":\"string\"},{\"name\":\"addresses\",\"type\":\"array\",\"items\":{\"type\": \"string\"}  }]}"
 )
 
 type Config struct {
