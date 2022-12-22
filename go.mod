@@ -14,6 +14,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/caarlos0/env/v6 v6.10.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect
+	github.com/crosscode-nl/partition v1.0.0 // indirect
 	github.com/danieljoos/wincred v1.1.2 // indirect
 	github.com/dvsekhvalnov/jose2go v1.5.0 // indirect
 	github.com/godbus/dbus v0.0.0-20190726142602-4481cbc300e2 // indirect

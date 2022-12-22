@@ -10,6 +10,7 @@ var (
 	exampleSchemaDef = "[{\"name\":\"payload\",\"type\":\"string\"},{\"name\":\"addresses\",\"type\":\"array\",\"items\":{\"type\": \"string\"}  }]"
 	httpPort         = 8000
 	prometheusPort   = 9500
+	batchSize        = 20
 )
 
 type Config struct {

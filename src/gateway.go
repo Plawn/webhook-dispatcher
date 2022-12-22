@@ -17,6 +17,24 @@ type Payload struct {
 	Addresses []string `json:"addresses"`
 }
 
+// HandleFunc type defines the func that is used as a callback in ToFunc
+type HandleFunc func(low int, high int)
+
+// partition calls provided func per fragment
+func partition(totalLength int, partitionLength int, hf HandleFunc) {
+	if partitionLength <= 0 || totalLength <= 0 {
+		return
+	}
+	partitions := totalLength / partitionLength
+	var i int
+	for i = 0; i < partitions; i++ {
+		hf(i*partitionLength, i*partitionLength+partitionLength)
+	}
+	if rest := totalLength % partitionLength; rest != 0 {
+		hf(i*partitionLength, i*partitionLength+rest)
+	}
+}
+
 func RunGateway(config Config) {
 	// Create a Pulsar client
 	client, err := pulsar.NewClient(pulsar.ClientOptions{
@@ -63,15 +81,22 @@ func RunGateway(config Config) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		msgId, err := producer.Send(ctx, &pulsar.ProducerMessage{
-			Value: &payload,
+		partition(len(payload.Addresses), batchSize, func(l int, h int) {
+			var currentPayload = &Payload{
+				Addresses: payload.Addresses[l:h],
+				Payload:   payload.Payload,
+			}
+			msgId, err := producer.Send(ctx, &pulsar.ProducerMessage{
+				Value: &currentPayload,
+			})
+			if err != nil {
+				log.Fatal(err)
+			} else {
+				log.Printf("Published message: %v", msgId)
+				fmt.Fprint(w, "OK")
+			}
 		})
-		if err != nil {
-			log.Fatal(err)
-		} else {
-			log.Printf("Published message: %v", msgId)
-			fmt.Fprint(w, "OK")
-		}
+
 	})
 
 	err = http.ListenAndServe(":"+strconv.Itoa(httpPort), nil)

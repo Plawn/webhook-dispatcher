@@ -75,8 +75,9 @@ func RunWorker(config Config) {
 			resp, httpErr := client.Do(request)
 			if httpErr != nil {
 				log.Fatal(httpErr)
+			} else {
+				fmt.Printf("status: %s\n", resp.Status)
 			}
-			fmt.Printf("status: %s\n", resp.Status)
 		}
 		consumer.Ack(msg)
 	}
