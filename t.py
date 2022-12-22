@@ -2,7 +2,7 @@ import requests
 
 
 def test():
-    r = requests.post('http://localhost:8000/send', json={"payload": "dev", "addresses":["https://yay"]})
+    r = requests.post('http://localhost:8000/send', json={"payload": "dev", "addresses":["https://google.com"]})
     print(r)
 
 

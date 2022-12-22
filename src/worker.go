@@ -64,12 +64,19 @@ func RunWorker(config Config) {
 		fmt.Printf("Received message  msgId: %v -- content: '%s'\n",
 			msg.ID(), string(msg.Payload()))
 		for _, a := range s.Addresses {
-			request, _ := http.NewRequest("POST", a, bytes.NewBuffer([]byte(s.Payload)))
+			request, requestErr := http.NewRequest("POST", a, bytes.NewBuffer([]byte(s.Payload)))
+			if (requestErr) != nil {
+				continue // means the url is bad
+			}
 			request.Header.Set("Content-Type", "application/json; charset=UTF-8")
 			client := &http.Client{
 				Timeout: 1 * time.Second,
 			}
-			client.Do(request)
+			resp, httpErr := client.Do(request)
+			if httpErr != nil {
+				log.Fatal(httpErr)
+			}
+			fmt.Printf("status: %s\n", resp.Status)
 		}
 		consumer.Ack(msg)
 	}
